@@ -23,7 +23,7 @@ var/
 *.egg
 
 # Ignore settings and vim backup files
-loacl_settings.py
+local_settings.py
 *~
 
 # Installer logs
