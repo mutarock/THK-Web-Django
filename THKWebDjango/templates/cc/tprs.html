@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block script_for_layout %}
+<script type="text/javascript" src="http://fs.tkafu.cc/js/lib/highcharts.js"></script>
+<script type="text/javascript" src="http://fs.tkafu.cc/js/lib/exporting.js"></script>
+<script type="text/javascript" src="http://fs.tkafu.cc/js/lib/jquery.jsonp.js"></script>
+<script type="text/javascript" charset="utf-8">
+var ev_data = [{}];
+var ev_data_new = [{}];
+var g_complete = false;
+var g_complete2 = false;
+
+function jsonp_cb(r) {
+    ev_data = r;
+    g_complete = true;
+}
+
+function jsonp_cb2(r) {
+    ev_data_new = r;
+    g_complete2 = true;
+}
+
+$(document).ready(function() {
+    $.jsonp({
+        url: 'http://fs.tkafu.cc/cc/cc_event.json?callback=?',
+        async: true
+    });
+
+    $.jsonp({
+        url: 'http://fs.tkafu.cc/cc/cc_event_new.json?callback=?',
+        async: true
+    });
+
+    Highcharts.setOptions({
+        global: {
+            useUTC: false
+        }
+    });
+
+
+    var itv = window.setInterval(function() {
+        if(g_complete === true) {
+            window.clearInterval(itv);
+            draw_chart('', ev_data);
+        }
+
+    }, 300);
+
+    var itv2 = window.setInterval(function() {
+        if(g_complete2 === true) {
+            window.clearInterval(itv2);
+            draw_chart('2', ev_data_new, (new Date(2013,12-1,24,22)).getTime());
+        }
+    }, 300);
+
+});
+
+function draw_chart(id, in_data, min) {
+    id = id || '';
+    min = min || 1387448400000;
+
+    $('#chart_container'+id).highcharts({
+        chart: {
+            renderTo: 'chart_container'+id,
+            type: 'spline',
+            borderColor: '#06C',
+            borderRadius: 20,
+            borderWidth: 2,
+            plotBackgroundColor: '#FFFFFF',
+            plotShadow: true,
+            marginRight: 200,
+            marginBottom: 40,
+            zoomType: "y"
+        },
+        credits: {
+            enabled: false
+        },
+        title: {
+            text: '黒ノ砦前線',
+            x: -20
+        },
+        subtitle: {
+            text: '活動排名',
+            x: -20
+        },
+        xAxis: {
+            type: "datetime",
+            min: min,
+            max: (new Date(2013,12-1,26,14)).getTime()+30*60*1000,
+            allowDecimals: false
+        },
+        // 縦軸の設定
+        yAxis: [{
+            title: {
+                text: '戰功 (pt)'
+            },
+            plotLines: [{
+                value: 0,
+                width: 1,
+                color: '#808080'
+            }],
+            //max: 300000,
+            min: 0,
+        }],
+        legend: {
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'top',
+            x: -10,
+            y: 120,
+            borderWidth: 1
+        },
+        plotOptions: {
+            spline: {
+                lineWidth: 3,
+                states: {
+                    hover: {
+                        lineWidth: 4
+                    }
+                },
+                marker: {
+                    enabled: false
+                }
+            }
+        },
+        series: in_data
+    });
+
+    // put data into table
+    if(1) {
+        var lists = {};
+        if(in_data.length > 0) {
+            if(in_data[0].data.length > 0) {
+                $.each(in_data[0].data.reverse(), function(k, v) {
+                    var d = new Date(v[0]);
+                    var str = ("0" + (d.getMonth() + 1)).slice(-2)
+                            + '/' + ("0" + d.getDate()).slice(-2)
+                            + ' ' + ("0" + d.getHours()).slice(-2) + ':' + d.getMinutes();
+
+                    lists[str] = [0, 0, 0, 0, 0, 0, 0, 0];
+               });
+            }
+        }
+
+        $.each(in_data, function(k, v) {
+            $.each(v.data, function(idx, val) {
+                var d = new Date(val[0]);
+                var str = ("0" + (d.getMonth() + 1)).slice(-2)
+                        + '/' + ("0" + d.getDate()).slice(-2)
+                        + ' ' + ("0" + d.getHours()).slice(-2) + ':' + d.getMinutes();
+
+                var $i = parseInt(v.index);
+                if($i > 11) {
+                    $i -= 11;
+                } else {
+                    $i -= 1;
+                }
+
+                lists[str][$i] = val[1];
+            });
+        });
+
+        var tbl = $('#ev_list'+id);
+        $.each(lists, function(k, v) {
+            var tr = $('<tr>');
+            $('<td>').html(k).appendTo(tr);
+            var content = '<td>'+v.join('</td><td>')+'</td>';
+            tr.append(content);
+            tbl.append(tr);
+        });
+    }
+}
+</script>
+{% endblock %}
+
+{% block title %}Top Page{% endblock %}
+ 
+{% block content_for_layout %}
+<h1>chain chronicle - 黒ノ砦前線 活動排名</h1>
+
+<div id="chart_container" style="width: 1000px; height: 550px; margin: 0 auto"></div>
+
+<div style="height:30px; width:100%;"></div>
+
+<div id="chart_container2" style="width: 1000px; height: 550px; margin: 0 auto"></div>
+
+
+<div style="height:30px; width:100%"></div>
+<div class="event">
+  <table id="ev_list2">
+    <tr>
+      <th>開始時間</th>
+      <th>1</th>
+      <th>1500</th>
+      <th>7500</th>
+      <th>30000</th>
+      <th>75000</th>
+      <th>120000</th>
+      <th>150000</th>
+      <th>300000</th>
+    </tr>
+  </table>
+</div>
+
+
+<div style="height:30px; width:100%"></div>
+<div class="event">
+  <table id="ev_list">
+    <tr>
+      <th>開始時間</th>
+      <th>1</th>
+      <th>1000</th>
+      <th>5000</th>
+      <th>20000</th>
+      <th>50000</th>
+      <th>80000</th>
+      <th>100000</th>
+      <th>200000</th>
+    </tr>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>{% block title %}{% endblock %}</title>
+    <link type="text/css" rel="StyleSheet" href="http://fs.tkafu.cc/css/reset.css">
+    <link type="text/css" rel="StyleSheet" href="http://fs.tkafu.cc/css/style.css">
+    <link type="text/css" rel="StyleSheet" href="http://fs.tkafu.cc/css/df_table.css">
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.9.2/jquery-ui.min.js"></script>
+    {% block script_for_layout %}{% endblock %}
+</head>
+<body>
+  <div id="container">
+    <div id="content">
+    {% block content_for_layout %}{% endblock %}
+    </div>
+
+    <div id="footer"></div>
+  </div>
+</body>
+</html>

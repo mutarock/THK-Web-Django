@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block script_for_layout %}
+<script type="text/javascript" src="http://fs.tkafu.cc/js/lib/highcharts.js"></script>
+<script type="text/javascript" src="http://fs.tkafu.cc/js/lib/exporting.js"></script>
+<script type="text/javascript" src="http://fs.tkafu.cc/js/lib/jquery.jsonp.js"></script>
+<script type="text/javascript" charset="utf-8">
+var ev_data = [{}];
+var g_complete = false;
+
+function jsonp_cb(r) {
+    ev_data = r;
+    g_complete = true;
+}
+
+$(document).ready(function() {
+    $.jsonp({
+        url: 'http://fs.tkafu.cc/cc/cc_event.json?callback=?',
+        async: true
+    });
+
+    Highcharts.setOptions({
+        global: {
+            useUTC: false
+        }
+    });
+
+
+    var itv = window.setInterval(function() {
+        if(g_complete === true) {
+            window.clearInterval(itv);
+            draw_chart();
+        }
+    }, 300);
+
+});
+
+function draw_chart() {
+    $('#chart_container').highcharts({
+        chart: {
+            renderTo: 'chart_container',
+            type: 'spline',
+            borderColor: '#06C',
+            borderRadius: 20,
+            borderWidth: 2,
+            plotBackgroundColor: '#FFFFFF',
+            plotShadow: true,
+            marginRight: 200,
+            marginBottom: 40,
+            zoomType: "y"
+        },
+        credits: {
+            enabled: false
+        },
+        title: {
+            text: '黒ノ砦前線',
+            x: -20
+        },
+        subtitle: {
+            text: '活動排名',
+            x: -20
+        },
+        xAxis: {
+            type: "datetime",
+            min: 1387448400000,
+            max: (new Date(2013,12-1,26,14)).getTime(),
+            allowDecimals: false
+        },
+        // 縦軸の設定
+        yAxis: [{
+            title: {
+                text: '戰功 (pt)'
+            },
+            plotLines: [{
+                value: 0,
+                width: 1,
+                color: '#808080'
+            }],
+            //max: 300000,
+            min: 0,
+        }],
+        legend: {
+            layout: 'vertical',
+            align: 'right',
+            verticalAlign: 'top',
+            x: -10,
+            y: 120,
+            borderWidth: 1
+        },
+        plotOptions: {
+            spline: {
+                lineWidth: 3,
+                states: {
+                    hover: {
+                        lineWidth: 4
+                    }
+                },
+                marker: {
+                    enabled: false
+                }
+            }
+        },
+        series: ev_data
+    });
+
+    // put data into table
+    var lists = {};
+    if(ev_data.length > 0) {
+        if(ev_data[0].data.length > 0) {
+            $.each(ev_data[0].data.reverse(), function(k, v) {
+                var d = new Date(v[0]);
+                var str = ("0" + (d.getMonth() + 1)).slice(-2)
+                        + '/' + ("0" + d.getDate()).slice(-2)
+                        + ' ' + ("0" + d.getHours()).slice(-2) + ':' + d.getMinutes();
+
+                lists[str] = [0, 0, 0, 0, 0, 0, 0, 0];
+           });
+        }
+    }
+
+    $.each(ev_data, function(k, v) {
+        console.log(k, v);
+        $.each(v.data, function(idx, val) {
+            var d = new Date(val[0]);
+            var str = ("0" + (d.getMonth() + 1)).slice(-2)
+                    + '/' + ("0" + d.getDate()).slice(-2)
+                    + ' ' + ("0" + d.getHours()).slice(-2) + ':' + d.getMinutes();
+            lists[str][parseInt(v.index)-1] = val[1];
+        });
+    });
+
+    var tbl = $('#ev_list');
+    $.each(lists, function(k, v) {
+        var tr = $('<tr>');
+        $('<td>').html(k).appendTo(tr);
+        var content = '<td>'+v.join('</td><td>')+'</td>';
+        tr.append(content);
+        tbl.append(tr);
+    });
+}
+</script>
+{% endblock %}
+
+{% block title %}Top Page{% endblock %}
+ 
+{% block content_for_layout %}
+<h1>chain chronicle - 黒ノ砦前線 活動排名</h1>
+
+<div id="chart_container" style="width: 1000px; height: 550px; margin: 0 auto"></div>
+<div style="height:30px; width:100%"></div>
+<div class="event">
+  <table id="ev_list">
+    <tr>
+      <th>開始時間</th>
+      <th>1</th>
+      <th>1000</th>
+      <th>5000</th>
+      <th>20000</th>
+      <th>50000</th>
+      <th>80000</th>
+      <th>100000</th>
+      <th>200000</th>
+    </tr>
+  </table>
+</div>
+{% endblock %}
